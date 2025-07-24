@@ -1,4 +1,4 @@
-# 🛡️ Hiya Spam Protection Dashboard
+# 🛡️ Spam Protection Dashboard
 
 This is an interactive analytics dashboard built to support Hiya's carrier partners by visualizing key threat detection and call protection metrics. It provides a clear, data-driven view of call classification performance, protection rates, and threat origin.
 
@@ -105,7 +105,3 @@ Example call data.xlsx      # Input dataset (sample)
 - Drill-down into individual call traces
 
 ---
-
-**Author:** _[Your Name]_  
-**Use case:** Hiya – Forward Deployed Engineering Interview Exercise  
-**Date:** July 2025
