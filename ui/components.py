@@ -142,3 +142,87 @@ def render_filters(analyzer):
     
     return date_range, call_types
 
+def render_hourly_heatmap(analyzer):
+    """Render heatmap showing call volume by hour and day of week"""
+    df = analyzer.master_df.copy()
+    df['hour'] = df['date'].dt.hour
+    df['day'] = df['date'].dt.day_name()
+    
+    hourly_data = df.groupby(['day', 'hour']).size().reset_index(name='calls')
+    
+    fig = go.Figure(data=go.Heatmap(
+        x=hourly_data['hour'],
+        y=hourly_data['day'],
+        z=hourly_data['calls'],
+        colorscale='Viridis'
+    ))
+    
+    fig.update_layout(
+        title='Call Volume by Hour and Day',
+        xaxis_title='Hour of Day',
+        yaxis_title='Day of Week',
+        height=400
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def render_threat_trend(analyzer):
+    """Render line chart showing threat trends over time"""
+    df = analyzer.master_df.copy()
+    daily_threats = df.groupby(['date', 'flagged']).size().unstack(fill_value=0)
+    
+    fig = go.Figure()
+    
+    for flag in ['spam', 'fraud']:
+        if flag in daily_threats.columns:
+            fig.add_trace(go.Scatter(
+                x=daily_threats.index,
+                y=daily_threats[flag],
+                name=flag.capitalize(),
+                mode='lines+markers'
+            ))
+    
+    fig.update_layout(
+        title='Daily Threat Trends',
+        xaxis_title='Date',
+        yaxis_title='Number of Calls',
+        height=400
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def render_country_map(analyzer):
+    """Render European map showing call origins"""
+    df = analyzer.master_df.copy()
+    country_threats = df[df['flagged'].isin(['spam', 'fraud'])].groupby('country').size()
+    
+    fig = go.Figure(data=go.Choropleth(
+        locations=country_threats.index,
+        z=country_threats.values,
+        locationmode='country names',
+        colorscale='Reds',
+        colorbar_title='Threat Calls'
+    ))
+    
+    # Configure the map to focus on Europe
+    fig.update_layout(
+        title='Geographic Distribution of Threats in Europe',
+        geo=dict(
+            scope='europe',
+            projection_type='mercator',
+            center=dict(lat=48.5, lon=10),  # Center on Central Europe
+            lataxis_range=[35, 65],  # Latitude bounds
+            lonaxis_range=[-10, 30],  # Longitude bounds
+            showland=True,
+            landcolor='rgb(243, 243, 243)',
+            showocean=True,
+            oceancolor='rgb(255, 255, 255)',
+            showcountries=True,
+            countrycolor='rgb(204, 204, 204)',
+        ),
+        height=500,
+        margin=dict(l=0, r=0, t=30, b=0)
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+

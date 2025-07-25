@@ -44,18 +44,31 @@ class CallDataAnalyzer:
 
     @staticmethod
     def get_country_from_number(phone_number):
-        """Extract country from phone number prefix"""
-        string_num = str(phone_number)
-        if string_num.startswith('44'):
-            return 'UK'
-        elif string_num.startswith('353'):
-            return 'Ireland'
-        elif string_num.startswith('49'):
-            return 'Germany'
-        elif string_num.startswith('1'):
-            return 'North America'
-        else:
-            return 'Other'
+        """
+        Extract country from phone number prefix
+        Returns country name with flag emoji
+        """
+        string_num = str(phone_number).strip()
+        
+        # Define country codes and their representations
+        country_codes = {
+            '33': 'France 🇫🇷',
+            '49': 'Germany 🇩🇪',
+            '39': 'Italy 🇮🇹',
+            '34': 'Spain 🇪🇸',
+            '351': 'Portugal 🇵🇹',
+            '31': 'Netherlands 🇳🇱',
+            '1': 'North America 🇺🇸🇨🇦',
+            '44': 'UK 🇬🇧',
+            '353': 'Ireland 🇮🇪'
+        }
+        
+        # Check for longer codes first (e.g., 351 before 31)
+        for prefix in sorted(country_codes.keys(), key=len, reverse=True):
+            if string_num.startswith(prefix):
+                return country_codes[prefix]
+        
+        return 'Other 🌍'
 
     def get_daily_stats(self):
         """Cache daily statistics computation"""
