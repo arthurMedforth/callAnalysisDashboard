@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import pandas as pd
 
 def render_metrics_row(analyzer):
     """Render the top metrics row with four key metrics."""
@@ -126,12 +127,13 @@ def render_insights(analyzer):
         ), unsafe_allow_html=True)
 
 def render_filters(analyzer):
-    """Render the sidebar filters."""
+    """Render the sidebar filters and export option."""
     st.sidebar.header("📊 Data Filters")
     
     date_range = st.sidebar.date_input(
         "Select Date Range",
-        value=(analyzer.master_df['date'].min(), analyzer.master_df['date'].max())
+        value=(analyzer.master_df['date'].min().date(), 
+               analyzer.master_df['date'].max().date())
     )
     
     call_types = st.sidebar.multiselect(
@@ -140,6 +142,33 @@ def render_filters(analyzer):
         default=['neutral', 'spam', 'fraud']
     )
     
+    # Add export functionality
+    st.sidebar.markdown("---")
+    st.sidebar.header("📥 Export Data")
+    
+    # Convert date_range to pandas datetime for comparison
+    start_date = pd.to_datetime(date_range[0])
+    end_date = pd.to_datetime(date_range[1])
+    
+    # Filter data based on selections
+    mask = (analyzer.master_df['date'].dt.date >= date_range[0]) & \
+           (analyzer.master_df['date'].dt.date <= date_range[1]) & \
+           (analyzer.master_df['flagged'].isin(call_types))
+           
+    filtered_df = analyzer.master_df[mask]
+    
+    if st.sidebar.button("Export Filtered Data"):
+        # Convert to CSV
+        csv = filtered_df.to_csv(index=False)
+        
+        # Create download button
+        st.sidebar.download_button(
+            label="📥 Download CSV",
+            data=csv,
+            file_name=f"call_data_{date_range[0]}_{date_range[1]}.csv",
+            mime="text/csv",
+        )
+        
     return date_range, call_types
 
 def render_hourly_heatmap(analyzer):
