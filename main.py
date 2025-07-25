@@ -16,7 +16,6 @@ def main():
     uploaded_file = st.sidebar.file_uploader(
         "Upload your Excel file",
         type=['xlsx', 'xls'],
-        accept_multiple_files=False,
         help="Upload an Excel file containing call data",
         key='uploaded_file'
     )
@@ -29,8 +28,14 @@ def main():
                 
                 # Create new analyzer instance
                 analyzer = CallDataAnalyzer(uploaded_file)
+                
+                # Show success message immediately after file input
+                st.sidebar.markdown("---")
+                st.sidebar.success('✅ File processed successfully!')
+                
+                # Render the dashboard
                 render_dashboard(analyzer)
-                st.sidebar.success('File processed successfully!')
+                
             except Exception as e:
                 st.error(f"Error processing file: {str(e)}")
                 st.info("""
