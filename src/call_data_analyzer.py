@@ -71,7 +71,6 @@ class CallDataAnalyzer:
         return 'Other 🌍'
 
     def get_daily_stats(self):
-        """Cache daily statistics computation"""
         daily_stats = self.master_df.groupby('date').agg({
             'calling phone number': 'count',
             'flagged': lambda x: (x.isin(['spam', 'fraud'])).sum()
