@@ -1,25 +1,40 @@
 import pandas as pd
-
-
-def load_excel_data(csv_path):
-    """Load Excel file data"""
-    return pd.read_excel(csv_path)
+import streamlit as st
 
 
 class CallDataAnalyzer:
-    def __init__(self, csv_path):
-        self.protection_rate = None
-        self.total_blocked = None
-        self.neutral_calls = None
-        self.fraud_calls = None
-        self.spam_calls = None
-        self.total_calls = None
-        self.master_df = load_excel_data(csv_path)  # No cache needed here
-        self.computeMetrics()
-        self.master_df['country'] = self.master_df['calling phone number'].apply(self.get_country_from_number)
+    def __init__(self, file_input):
+        """Initialize analyzer with data from Excel file"""
+        try:
+            self.master_df = pd.read_excel(file_input)
+            self._validate_dataframe()
+            self.computeMetrics()
+            self.master_df['country'] = self.master_df['calling phone number'].apply(self.get_country_from_number)
+        except Exception as e:
+            raise ValueError(f"Error processing file: {str(e)}")
+
+    def _validate_dataframe(self):
+        """Validate dataframe structure and content"""
+        required_columns = ['date', 'calling phone number', 'flagged']
+        
+        # Check columns exist
+        missing_columns = [col for col in required_columns if col not in self.master_df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {', '.join(missing_columns)}")
+
+        # Validate data types
+        if not pd.api.types.is_datetime64_any_dtype(self.master_df['date']):
+            self.master_df['date'] = pd.to_datetime(self.master_df['date'])
+
+        # Validate flagged values
+        valid_flags = ['neutral', 'spam', 'fraud']
+        invalid_flags = self.master_df[~self.master_df['flagged'].isin(valid_flags)]['flagged'].unique()
+        if len(invalid_flags) > 0:
+            raise ValueError(f"Invalid flag values found: {invalid_flags}")
 
     def computeMetrics(self):
-        # Calculate key metrics
+        """Compute all metrics based on current master_df"""
+        # Calculate key metrics from scratch
         self.total_calls = len(self.master_df)
         self.spam_calls = len(self.master_df[self.master_df['flagged'] == 'spam'])
         self.fraud_calls = len(self.master_df[self.master_df['flagged'] == 'fraud'])
