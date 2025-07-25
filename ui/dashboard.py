@@ -24,11 +24,11 @@ def render_dashboard(analyzer):
     logo_path = Path(__file__).parent / "assets" / "hiya_logo.png"
     logo_base64 = get_image_as_base64(logo_path)
     
-    # Header with logo
+    # Header with larger logo
     st.markdown(f"""
     <div class="main-header">
         <img src="data:image/png;base64,{logo_base64}" 
-             style="height: 60px; margin-bottom: 10px;">
+             class="logo-image">
         <h1>Spam Protection Dashboard</h1>
     </div>
     """, unsafe_allow_html=True)

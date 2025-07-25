@@ -10,10 +10,10 @@ DASHBOARD_STYLE = """
             align-items: center;
         }
         
-        .main-header img {
-            max-width: 180px;
+        .logo-image {
+            max-width: 300px;  /* Increased from 180px */
             height: auto;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;  /* Increased from 1.5rem */
         }
 
         .main-header h1 {
