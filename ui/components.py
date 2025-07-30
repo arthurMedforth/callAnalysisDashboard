@@ -255,3 +255,36 @@ def render_country_map(analyzer):
     
     st.plotly_chart(fig, use_container_width=True)
 
+def render_category_analysis(analyzer):
+    """Render spam category analysis visualization"""
+    category_stats = analyzer.get_category_stats()
+    
+    # Create figure
+    fig = go.Figure(data=[
+        go.Bar(
+            x=category_stats.index,
+            y=category_stats.values,
+            marker_color=['#f39c12' if cat != 'undefined' else '#95a5a6' for cat in category_stats.index],
+            text=category_stats.values,
+            textposition='auto',
+        )
+    ])
+    
+    # Update layout
+    fig.update_layout(
+        title='Spam Call Categories',
+        xaxis_title='Category',
+        yaxis_title='Number of Spam Calls',
+        height=500,
+        showlegend=False,
+        xaxis=dict(
+            tickangle=45,
+            tickmode='array',
+            ticktext=category_stats.index,
+            tickvals=list(range(len(category_stats.index)))
+        ),
+        margin=dict(b=100, l=50, r=50, t=50)
+    )
+    
+    # Display the chart
+    st.plotly_chart(fig, use_container_width=True)

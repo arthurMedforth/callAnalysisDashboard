@@ -8,6 +8,8 @@ class CallDataAnalyzer:
         try:
             self.master_df = pd.read_excel(file_input)
             self._validate_dataframe()
+            self._clean_category_data() 
+            self.get_category_stats() # Add new cleaning step
             self.computeMetrics()
             self.master_df['country'] = self.master_df['calling phone number'].apply(self.get_country_from_number)
         except Exception as e:
@@ -15,7 +17,7 @@ class CallDataAnalyzer:
 
     def _validate_dataframe(self):
         """Validate dataframe structure and content"""
-        required_columns = ['date', 'calling phone number', 'flagged']
+        required_columns = ['date', 'calling phone number', 'flagged', 'category']
         
         # Check columns exist
         missing_columns = [col for col in required_columns if col not in self.master_df.columns]
@@ -31,6 +33,23 @@ class CallDataAnalyzer:
         invalid_flags = self.master_df[~self.master_df['flagged'].isin(valid_flags)]['flagged'].unique()
         if len(invalid_flags) > 0:
             raise ValueError(f"Invalid flag values found: {invalid_flags}")
+
+    def _clean_category_data(self):
+        """Clean and standardize category data"""
+        # Replace NaN, empty strings, and whitespace-only strings with 'Other'
+        self.master_df['category'] = self.master_df['category'].fillna('Other')
+        self.master_df['category'] = self.master_df['category'].replace(r'^\s*$', 'Other', regex=True)
+        self.master_df['category'] = self.master_df['category'].str.strip()
+        
+        # Set category to 'undefined' for:
+        # 1. Spam calls with no category (Other)
+        # 2. Spam calls with generic 'spam' category
+        spam_undefined_mask = (
+            (self.master_df['flagged'] == 'spam') & 
+            ((self.master_df['category'] == 'Other') | 
+             (self.master_df['category'] == 'Spam'))
+        )
+        self.master_df.loc[spam_undefined_mask, 'category'] = 'undefined'
 
     def computeMetrics(self):
         """Compute all metrics based on current master_df"""
@@ -79,3 +98,13 @@ class CallDataAnalyzer:
         daily_stats['protection_rate'] = (daily_stats['blocked_calls'] / daily_stats['total_calls']) * 100
         daily_stats['date_str'] = daily_stats['date'].dt.strftime('%b %d')
         return daily_stats
+
+    def get_category_stats(self):
+        """Get statistics for spam calls by category, with combined undefined category"""
+        # Filter for spam calls only
+        spam_df = self.master_df[self.master_df['flagged'] == 'spam']
+        
+        # Get category counts
+        category_counts = spam_df['category'].value_counts()
+        
+        return category_counts

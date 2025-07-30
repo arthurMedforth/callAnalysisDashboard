@@ -8,7 +8,8 @@ from .components import (
     render_filters,
     render_hourly_heatmap,
     render_threat_trend,
-    render_country_map
+    render_country_map,
+    render_category_analysis
 )
 from .styles import DASHBOARD_STYLE
 
@@ -58,3 +59,7 @@ def render_dashboard(analyzer):
     
     # Insights
     render_insights(analyzer)
+
+    # Add category analysis section
+    st.markdown("### 📊 Category Analysis")
+    render_category_analysis(analyzer)
